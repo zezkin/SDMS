@@ -8,6 +8,11 @@
 
 using namespace std;
 
+int line_num = 0;
+
+//calc line data in data folder.
+void calc_lines();
+
 
 //Displaying menu screen.
 void menuscreen();
@@ -32,6 +37,7 @@ int main()
     //Setting window dimensions.
     //system("MODE CON COLS=100 LINES=20");
     menuscreen();
+
 
 
 }
@@ -83,16 +89,21 @@ void TIM (string text, char mode, int endline = 1)
 //Displays menuscreen.
 void menuscreen()
 {
-    int choice;
-    system("CLS");
-    TIM("===== STUDENT DATABASE MANAGMENT SYSTEM =====", 'm');
-    TIM("1- Enter new data.", 'f');
-    TIM("2- Modify your existing data.", 'f');
-    TIM("3- Listing existing data.", 'f');
-    TIM("4- Delete existing data.", 'f');
-    TIM("5- Exit program.", 'f');
-    TIM("Select your choice :=> ", 'f', 0);
-    cin >> choice;
+    calc_lines();
+    long long choice;
+    do
+    {
+        system("CLS");
+        TIM("===== STUDENT DATABASE MANAGMENT SYSTEM =====", 'm');
+        TIM("1- Enter new data.", 'f');
+        TIM("2- Modify your existing data.", 'f');
+        TIM("3- Listing existing data.", 'f');
+        TIM("4- Delete existing data.", 'f');
+        TIM("5- Exit program.", 'f');
+        TIM("Select your choice :=> ", 'f', 0);
+        cin >> choice;
+    }
+    while(choice < 1 || choice > 5);
     switch(choice)
     {
     case 1:
@@ -168,8 +179,13 @@ void modify_data()
 {
     int num = 0;
     string line;
-    cout << "Enter which number to modify (i.e #..) : ";
-    cin >> num;
+    do
+    {
+        cout << "Enter which number to modify (i.e #..) : ";
+        cin >> num;
+    }
+    while(num < 1 || num > line_num);
+
     fstream record;
     record.open("records.txt", ios::in);
     //Checking validity of the file.
@@ -366,5 +382,30 @@ void delete_data()
     system("PAUSE");
     record.close();
     menuscreen();
+}
+
+//calc line data in data folder.
+void calc_lines()
+{
+    line_num = 0;
+    fstream record;
+    record.open("records.txt", ios::in);
+    if (!record.is_open())
+    {
+        cout << "Cannot open the file! \a";
+        return;
+    }
+    string temp;
+    while(true)
+    {
+
+        getline(record, temp );
+        if (record.eof())                      // check for EOF
+            break;
+        line_num ++;
+    }
+
+    record.close();
+
 }
 
