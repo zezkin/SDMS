@@ -8,9 +8,14 @@
 
 using namespace std;
 
+int line_num = 0;
+
+//calc line data in data folder.
+void calc_lines();
+
 
 //Displaying menu screen.
-void menuscreen();
+int  menuscreen();
 
 //Cout text given in "mode.
 void TIM (string text, char mode, int endline);
@@ -27,11 +32,21 @@ void list_data();
 //Erasing all data.
 void delete_data();
 
+//Delete specific student.
+void specific_delete();
+
 int main()
 {
     //Setting window dimensions.
     //system("MODE CON COLS=100 LINES=20");
-    menuscreen();
+    int z;
+    do
+    {
+        z = menuscreen();
+    }
+    while(z != 0);
+
+    return 0;
 
 
 }
@@ -81,18 +96,34 @@ void TIM (string text, char mode, int endline = 1)
 }
 
 //Displays menuscreen.
-void menuscreen()
+int menuscreen()
 {
-    int choice;
-    system("CLS");
-    TIM("===== STUDENT DATABASE MANAGMENT SYSTEM =====", 'm');
-    TIM("1- Enter new data.", 'f');
-    TIM("2- Modify your existing data.", 'f');
-    TIM("3- Listing existing data.", 'f');
-    TIM("4- Delete existing data.", 'f');
-    TIM("5- Exit program.", 'f');
-    TIM("Select your choice :=> ", 'f', 0);
-    cin >> choice;
+    calc_lines();
+
+    long long choice;
+    do
+    {
+        system("CLS");
+        TIM("===== STUDENT DATABASE MANAGMENT SYSTEM =====", 'm');
+        TIM("1- Enter new data.", 'f');
+        TIM("2- Modify your existing data.", 'f');
+        TIM("3- Listing existing data.", 'f');
+        TIM("4- Delete existing data.", 'f');
+        TIM("5- Exit program.", 'f');
+        TIM("Select your choice :=> ", 'f', 0);
+        cin >> choice;
+    }
+    while(choice < 1 || choice > 5);
+    if (line_num == 0)
+    {
+        if (choice != 1 && choice != 5)
+        {
+            system("CLS");
+            TIM("***Please enter new data before modifying or deleting or doing anything.***\a", 'm');
+            system("PAUSE");
+            return 1;
+        }
+    }
     switch(choice)
     {
     case 1:
@@ -112,7 +143,9 @@ void menuscreen()
         delete_data();
         break;
     case 5:
-        return;
+        return 0;
+        //Not finished yet.
+        return 1;
 
     }
 }
@@ -157,7 +190,7 @@ void record_data()
     }
     while (ch[0] == 'y' || ch[0] == 'Y');
     record.close();
-    menuscreen();
+    return;
 
 
 
@@ -168,8 +201,13 @@ void modify_data()
 {
     int num = 0;
     string line;
-    cout << "Enter which number to modify (i.e #..) : ";
-    cin >> num;
+    do
+    {
+        cout << "Enter which number to modify (i.e #..) : ";
+        cin >> num;
+    }
+    while(num < 1 || num > line_num);
+
     fstream record;
     record.open("records.txt", ios::in);
     //Checking validity of the file.
@@ -222,6 +260,20 @@ void modify_data()
             j++;
         }
         cout << endl;
+        //Confirmation of the modification.
+        string ch;
+        do
+        {
+            cout << "Are you sure you want to modify this? (Y/N)" << endl;
+            cin >> ch;
+        }
+        while(ch[0] != 'y' & ch[0] != 'Y' & ch[0] != 'n' & ch[0] != 'N');
+        //Break if the answer is no.
+        if (ch[0] == 'n' || ch[0] == 'N')
+        {
+            return;
+        }
+
     ///////////////////////////////////
     //CREATING TEMP FILE TO MODIFY.
     record.close();
@@ -289,7 +341,7 @@ void modify_data()
     remove("temprecords.txt");
 
     system("PAUSE");
-    menuscreen();
+    return;
 }
 
 //Listing existing data.
@@ -348,23 +400,187 @@ void list_data()
     }
     record.close();
     system("PAUSE");
-    menuscreen();
+    return;
 
 }
 //Erasing all data.
 void delete_data()
 {
     fstream record;
-    record.open("records.txt", ios::out);
-    cout << "Deleting data..." << endl;
+    int choice;
+    cout << "Do you want to delete a specific student or all data?" << endl;
+    cout << "1 - all            2 - Specific" << endl;
+    cout << "Your choice is: ";
+    cin >> choice;
+    switch(choice)
+    {
+    case 1:
+            record.open("records.txt", ios::out);
+            cout << "Deleting data..." << endl;
+            if (!record.is_open())
+            {
+                cout << "Cannot open the file! \a";
+                return;
+            }
+            cout << "Data has been sucessfully deleted." << endl;
+            system("PAUSE");
+            record.close();
+            break;
+    case 2:
+        //Delete specific student.
+        specific_delete();
+        break;
+    }
+
+
+    return;
+}
+
+//calc line data in data folder.
+void calc_lines()
+{
+    line_num = 0;
+    fstream record;
+    record.open("records.txt", ios::in);
+    if (!record.is_open())
+    {
+        //cout << "Cannot open the file! \a";
+        return;
+    }
+    string temp;
+    while(true)
+    {
+
+        getline(record, temp );
+        if (record.eof())                      // check for EOF
+            break;
+        line_num ++;
+    }
+
+    record.close();
+    return;
+
+}
+
+//Delete specific student.
+void specific_delete()
+{
+    int num = 0;
+    string line;
+    do
+    {
+        cout << "Enter which number to delete (i.e #..) : ";
+        cin >> num;
+    }
+    while(num < 1 || num > line_num);
+
+    fstream record;
+    record.open("records.txt", ios::in);
+    //Checking validity of the file.
     if (!record.is_open())
     {
         cout << "Cannot open the file! \a";
         return;
     }
-    cout << "Data has been sucessfully deleted." << endl;
-    system("PAUSE");
-    record.close();
-    menuscreen();
-}
+    //Reaching specific line
+    if ( num != 1)
+    {
+        for (int i = 0 ; i < num - 1 ; i++)
+        {
+            getline(record, line);
+        }
+    }
 
+    getline(record, line);
+    // SHOWING THE STUDENT THAT WILL BE DELETED IN THE FORMAT.
+        cout << num << "- " << endl;
+        int j = 0;
+        cout << "   First name: ";
+        while (line[j] != ' ')
+        {
+            cout << line[j];
+            j++;
+        }
+        j++;
+        cout << endl;
+        cout << "   Last name: ";
+        while (line[j] != ' ')
+        {
+            cout << line[j];
+            j++;
+        }
+        j++;
+        cout << endl;
+        cout << "   Section: ";
+        while (line[j] != ' ')
+        {
+            cout << line[j];
+            j++;
+        }
+        j++;
+        cout << endl;
+        cout << "   Favorite subject: ";
+        while (line[j] != ' ')
+        {
+            cout << line[j];
+            j++;
+        }
+        cout << endl;
+        string ch;
+        do
+        {
+            cout << "Are you sure you want to delete him? (Y/N)" << endl;
+            cin >> ch;
+        }
+        while(ch[0] != 'y' & ch[0] != 'Y' & ch[0] != 'n' & ch[0] != 'N');
+        //Break if the answer is no.
+        if (ch[0] == 'n' || ch[0] == 'N')
+            return;
+
+
+    ///////////////////////////////////
+    //CREATING TEMP FILE TO MODIFY.
+    record.close();
+    system("PAUSE");
+    system("CLS");
+    //Modifying piece
+    fstream infile, tmpfile;
+    string tmpline;
+    infile.open("records.txt", ios::in);
+    tmpfile.open("temprecords.txt", ios::out);
+    int i = 0;
+    while(true)
+    {
+        i++;
+        getline(infile, tmpline);
+        if (infile.eof())                      // check for EOF
+            break;
+
+        if (i == num)
+        {
+            continue;
+        }
+        else
+        {
+            tmpfile << tmpline << endl;
+        }
+
+    }
+    infile.close();
+    tmpfile.close();
+    //Copying tmpfile text into the original.
+    infile.open("records.txt", ios::out);
+    tmpfile.open("temprecords.txt", ios::in);
+    i = 0;
+    while(true)
+    {
+        i++;
+        getline(tmpfile, tmpline);
+        if (tmpfile.eof())                      // check for EOF
+            break;
+        infile << tmpline;
+        infile << endl;
+
+    }
+    return;
+}
